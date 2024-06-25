@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon index.js --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Daniel García",
@@ -12,5 +13,8 @@
     "@apollo/server": "^4.10.4",
     "graphql": "^16.8.2",
     "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
   }
 }
