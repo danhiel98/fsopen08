@@ -35,6 +35,7 @@ const BirthForm = ({ authors }) => {
       <form onSubmit={submit}>
         <div>
           <select value={name} onChange={({ target }) => setName(target.value)}>
+            <option>[Select author]</option>
             {authors.map(a => (
               <option key={a.id} value={a.name}>{a.name}</option>
             ))}

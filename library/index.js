@@ -30,7 +30,9 @@ const typeDefs = `
   }
 
   type Token {
-    value: String!
+    username: String!,
+    favoriteGenre: String!,
+    token: String!
   }
 
   type Author {
@@ -140,6 +142,14 @@ const resolvers = {
       const author = await Author.findOne({ name: args.author })
       const currentUser = context.currentUser
 
+      if (!author) {
+        throw new GraphQLError('Author not found', {
+          extensions: {
+            code: 'BAD_USER_INPUT'
+          }
+        })
+      }
+
       if (!currentUser) {
         throw new GraphQLError('Not authenticated', {
           extensions: {
@@ -148,7 +158,10 @@ const resolvers = {
         })
       }
 
-      const book = new Book({ ...args })
+      const { genres } = args
+      const newGenres = genres.map(g => g.toLowerCase())
+
+      const book = new Book({ ...args, genres: newGenres })
       book.author = author
 
       try {
@@ -166,10 +179,20 @@ const resolvers = {
       return book
     },
 
-    editAuthor: async (root, args) => {
+    editAuthor: async (root, args, context) => {
       const author = await Author.findOne({ name: args.name })
+      const currentUser = context.currentUser
+
       if (!author) {
         return null
+      }
+
+      if (!currentUser) {
+        throw new GraphQLError('Not authenticated', {
+          extensions: {
+            code: 'BAD_USER_INPUT'
+          }
+        })
       }
 
       author.born = args.setBornTo
@@ -220,7 +243,11 @@ const resolvers = {
         id: user._id
       }
 
-      return { value: jwt.sign(userForToken, process.env.JWT_SECRET) }
+      return {
+        username: user.username,
+        favoriteGenre: user.favoriteGenre,
+        token: jwt.sign(userForToken, process.env.JWT_SECRET)
+      }
     }
   },
   Author: {

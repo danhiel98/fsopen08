@@ -1,19 +1,46 @@
 import { useMutation } from '@apollo/client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ALL_BOOKS, CREATE_BOOK } from '../queries/books'
+import { useNavigate } from 'react-router-dom'
+import PropTypes from 'prop-types'
 
-const NewBook = () => {
+const NewBook = ({ token }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [published, setPublished] = useState('')
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
 
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/books')
+    }
+  }, [token, navigate])
+
   const [createBook] = useMutation(CREATE_BOOK, {
-    refetchQueries: [{ query: ALL_BOOKS }],
     onError: (error) => {
+      console.log(error)
       const messages = error.graphQLErrors.map(e => e.message).join('\n')
       console.log(messages)
+    },
+    update: (cache, response) => {
+      const newBook = response.data.addBook
+
+      cache.updateQuery({ query: ALL_BOOKS, variables: { genre: '' } }, ({ allBooks }) => {
+        return {
+          allBooks: allBooks.concat(newBook)
+        }
+      })
+
+      newBook.genres.forEach(genre => {
+        cache.updateQuery({ query: ALL_BOOKS, variables: { genre } }, ({ allBooks }) => {
+          return {
+            allBooks: allBooks.concat(newBook)
+          }
+        })
+      })
     }
   })
 
@@ -25,8 +52,6 @@ const NewBook = () => {
     }
 
     const bookData = { title, author, published, genres }
-
-    console.log(bookData)
 
     createBook({ variables: bookData })
 
@@ -44,6 +69,7 @@ const NewBook = () => {
 
   return (
     <div>
+      <h2>Add book</h2>
       <form onSubmit={submit}>
         <div>
           title
@@ -84,6 +110,10 @@ const NewBook = () => {
       </form>
     </div>
   )
+}
+
+NewBook.propTypes = {
+  token: PropTypes.string
 }
 
 export default NewBook

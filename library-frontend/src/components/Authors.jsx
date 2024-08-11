@@ -1,9 +1,11 @@
 import { useQuery } from "@apollo/client"
 import { ALL_AUTHORS } from "../queries/authors"
 import BirthForm from "./BirthForm"
+import { useLocalStorage } from "../hooks/useLocalStorage"
 
 const Authors = () => {
   const result = useQuery(ALL_AUTHORS)
+  const userData = useLocalStorage('library-user-data')
 
   if (result.loading) {
     return <div>loading...</div>
@@ -13,7 +15,7 @@ const Authors = () => {
 
   return (
     <div>
-      <h2>authors</h2>
+      <h2>Authors</h2>
       <table>
         <tbody>
           <tr>
@@ -30,7 +32,10 @@ const Authors = () => {
           ))}
         </tbody>
       </table>
-      <BirthForm authors={authors} />
+      {
+        userData &&
+        <BirthForm authors={authors} />
+      }
     </div>
   )
 }
