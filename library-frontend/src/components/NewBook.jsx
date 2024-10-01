@@ -1,8 +1,9 @@
-import { useMutation } from '@apollo/client'
+import { useMutation, useQuery } from '@apollo/client'
 import { useEffect, useState } from 'react'
 import { ALL_BOOKS, CREATE_BOOK } from '../queries/books'
 import { useNavigate } from 'react-router-dom'
 import PropTypes from 'prop-types'
+import { ALL_AUTHORS } from '../queries/authors'
 
 const NewBook = ({ token }) => {
   const [title, setTitle] = useState('')
@@ -10,6 +11,8 @@ const NewBook = ({ token }) => {
   const [published, setPublished] = useState('')
   const [genre, setGenre] = useState('')
   const [genres, setGenres] = useState([])
+
+  const authorResult = useQuery(ALL_AUTHORS)
 
   const navigate = useNavigate()
 
@@ -27,6 +30,7 @@ const NewBook = ({ token }) => {
     },
     update: (cache, response) => {
       const newBook = response.data.addBook
+      console.log(newBook)
 
       cache.updateQuery({ query: ALL_BOOKS, variables: { genre: '' } }, ({ allBooks }) => {
         return {
@@ -35,14 +39,27 @@ const NewBook = ({ token }) => {
       })
 
       newBook.genres.forEach(genre => {
-        cache.updateQuery({ query: ALL_BOOKS, variables: { genre } }, ({ allBooks }) => {
+        console.log(genre)
+        cache.updateQuery({ query: ALL_BOOKS, variables: { genre } }, result => {
+          if (!result) {
+            return {
+              allBooks: [newBook]
+            }
+          }
+
           return {
-            allBooks: allBooks.concat(newBook)
+            allBooks: result.allBooks.concat(newBook)
           }
         })
       })
     }
   })
+
+  if (authorResult.loading) {
+    return <div>loading...</div>
+  }
+
+  const authors = authorResult.data.allAuthors
 
   const submit = async (event) => {
     event.preventDefault()
@@ -81,11 +98,16 @@ const NewBook = ({ token }) => {
         </div>
         <div>
           author
-          <input
-            required
+          <select
             value={author}
             onChange={({ target }) => setAuthor(target.value)}
-          />
+            required
+          >
+            <option value="">[Select author]</option>
+            {authors.map(a => (
+              <option key={a.id} value={a.name}>{a.name}</option>
+            ))}
+          </select>
         </div>
         <div>
           published
