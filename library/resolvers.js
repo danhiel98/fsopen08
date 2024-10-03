@@ -1,3 +1,6 @@
+const { PubSub } = require('graphql-subscriptions')
+const pubsub = new PubSub()
+
 const jwt = require('jsonwebtoken')
 const { GraphQLError } = require('graphql')
 const Author = require('./models/author')
@@ -92,6 +95,8 @@ const resolvers = {
         })
       }
 
+      pubsub.publish('BOOK_ADDED', { bookAdded: book })
+
       return book
     },
 
@@ -169,6 +174,11 @@ const resolvers = {
   Author: {
     bookCount: async (root) => {
       return Book.countDocuments({ author: root.id })
+    }
+  },
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator('BOOK_ADDED')
     }
   }
 }
