@@ -14,15 +14,6 @@ const BOOK_DETAILS = gql`
   }
 `
 
-export const BOOK_ADDED = gql`
-  subscription {
-    bookAdded {
-      ...BookDetails
-    }
-  }
-  ${BOOK_DETAILS}
-`
-
 export const ALL_BOOKS = gql`
   query getBooks($author: String, $genre: String) {
     allBooks (
@@ -43,6 +34,15 @@ export const CREATE_BOOK = gql`
       published: $published,
       genres: $genres
     ) {
+      ...BookDetails
+    }
+  }
+  ${BOOK_DETAILS}
+`
+
+export const BOOK_ADDED = gql`
+  subscription {
+    bookAdded {
       ...BookDetails
     }
   }

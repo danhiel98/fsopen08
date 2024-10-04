@@ -4,34 +4,21 @@ import { useEffect, useState } from "react"
 import BookList from "./BookList"
 
 const Books = () => {
-  const [getBooks] = useLazyQuery(ALL_BOOKS)
+  const [getBooks, { loading, error, data }] = useLazyQuery(ALL_BOOKS)
   const [genre, setGenre] = useState('all')
-  const [genres, setGenres] = useState([])
-  const [books, setBooks] = useState([])
-  const [loading, setLoading] = useState(true)
+  let allGenres = []
+
+  const getGenres = (data) => {
+    const genres = data.allBooks.map(b => b.genres).flat()
+    return genres
+      .filter((item, index) => genres.indexOf(item) === index)
+      .sort()
+  }
 
   const filterBooks = () => {
     const filterGenre = genre === 'all' ? '' : genre
-    setLoading(true)
     getBooks({ variables: { genre: filterGenre } })
-      .then(res => {
-        const result = res.data.allBooks
-        setBooks(result)
-      }).finally(() => {
-        setLoading(false)
-      })
   }
-
-  useEffect(() => {
-    getBooks('all').then((res) => {
-      const result = res.data.allBooks
-      const genres = result.map(b => b.genres).flat()
-      const genresList = genres
-        .filter((item, index) => genres.indexOf(item) === index)
-        .sort()
-      setGenres(genresList)
-    })
-  }, [ALL_BOOKS])
 
   useEffect(() => {
     if (genre) {
@@ -40,6 +27,11 @@ const Books = () => {
   }, [genre])
 
   if (loading) return (<>loading...</>)
+  if (error) return `Error! ${error}`
+
+  if (data) {
+    allGenres = getGenres(data)
+  }
 
   return (
     <div>
@@ -47,13 +39,16 @@ const Books = () => {
 
       <p>in genre <strong>{genre}</strong></p>
       <div>
-        {genres.map(g => (
+        {allGenres.map(g => (
           <button key={g} onClick={() => setGenre(g)}>{g}</button>
         ))}
         <button onClick={() => setGenre('all')}>all genres</button>
       </div>
 
-      <BookList list={books} />
+      {
+        data?.allBooks &&
+        <BookList list={data.allBooks} />
+      }
     </div>
   )
 }

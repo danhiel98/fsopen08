@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client'
+import { CREATE_BOOK } from '../queries/books'
 import { useEffect, useState } from 'react'
-import { ALL_BOOKS, CREATE_BOOK } from '../queries/books'
 import { useNavigate } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { ALL_AUTHORS } from '../queries/authors'
@@ -28,29 +28,7 @@ const NewBook = ({ token }) => {
       const messages = error.graphQLErrors.map(e => e.message).join('\n')
       console.log(messages)
     },
-    update: (cache, response) => {
-      const newBook = response.data.addBook
-
-      cache.updateQuery({ query: ALL_BOOKS, variables: { genre: '' } }, ({ allBooks }) => {
-        return {
-          allBooks: allBooks.concat(newBook)
-        }
-      })
-
-      newBook.genres.forEach(genre => {
-        cache.updateQuery({ query: ALL_BOOKS, variables: { genre } }, result => {
-          if (!result) {
-            return {
-              allBooks: [newBook]
-            }
-          }
-
-          return {
-            allBooks: result.allBooks.concat(newBook)
-          }
-        })
-      })
-    }
+    onCompleted: () => console.log('completed')
   })
 
   if (authorResult.loading) {
@@ -91,6 +69,7 @@ const NewBook = ({ token }) => {
           <input
             required
             value={title}
+            minLength={5}
             onChange={({ target }) => setTitle(target.value)}
           />
         </div>

@@ -8,7 +8,29 @@ import Login from "./components/LoginForm";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import Recommended from "./components/Recommended";
 import { useSubscription } from "@apollo/client";
-import { BOOK_ADDED } from "./queries/books";
+import { ALL_BOOKS, BOOK_ADDED } from "./queries/books";
+
+export const updateCache = (cache, query, addedBook) => {
+  const uniqByTitle = (a) => {
+    let seen = new Set()
+    return a.filter((item) => {
+      let k = item.title
+      return seen.has(k) ? false : seen.add(k)
+    })
+  }
+
+  cache.updateQuery(query, result => {
+    if (!result) {
+      return {
+        allBooks: [addedBook]
+      }
+    }
+
+    return {
+      allBooks: uniqByTitle(result.allBooks.concat(addedBook))
+    }
+  })
+}
 
 const App = () => {
   const [token, setToken] = useState(null)
@@ -21,9 +43,14 @@ const App = () => {
   }, [userData])
 
   useSubscription(BOOK_ADDED, {
-    onData: ({ data }) => {
-      console.log(data)
-      alert(`Book "${data.data.bookAdded.title}" created successfully`)
+    onData: ({ data, client }) => {
+      const addedBook = data.data.bookAdded
+
+      updateCache(client.cache, { query: ALL_BOOKS, variables: { genre: '' } }, addedBook)
+
+      addedBook.genres.forEach(genre => {
+        updateCache(client.cache, { query: ALL_BOOKS, variables: { genre } }, addedBook)
+      })
     }
   })
 
