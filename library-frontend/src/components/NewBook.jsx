@@ -30,7 +30,6 @@ const NewBook = ({ token }) => {
     },
     update: (cache, response) => {
       const newBook = response.data.addBook
-      console.log(newBook)
 
       cache.updateQuery({ query: ALL_BOOKS, variables: { genre: '' } }, ({ allBooks }) => {
         return {
@@ -39,7 +38,6 @@ const NewBook = ({ token }) => {
       })
 
       newBook.genres.forEach(genre => {
-        console.log(genre)
         cache.updateQuery({ query: ALL_BOOKS, variables: { genre } }, result => {
           if (!result) {
             return {

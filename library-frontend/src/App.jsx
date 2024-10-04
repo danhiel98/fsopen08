@@ -7,6 +7,8 @@ import { useEffect, useState } from "react";
 import Login from "./components/LoginForm";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import Recommended from "./components/Recommended";
+import { useSubscription } from "@apollo/client";
+import { BOOK_ADDED } from "./queries/books";
 
 const App = () => {
   const [token, setToken] = useState(null)
@@ -17,6 +19,13 @@ const App = () => {
       setToken(userData.token)
 
   }, [userData])
+
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data }) => {
+      console.log(data)
+      alert(`Book "${data.data.bookAdded.title}" created successfully`)
+    }
+  })
 
   const logout = () => {
     setToken(null)

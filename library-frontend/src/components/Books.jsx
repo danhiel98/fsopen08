@@ -30,10 +30,8 @@ const Books = () => {
         .filter((item, index) => genres.indexOf(item) === index)
         .sort()
       setGenres(genresList)
-
-
     })
-  }, [])
+  }, [ALL_BOOKS])
 
   useEffect(() => {
     if (genre) {
