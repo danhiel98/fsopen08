@@ -60,7 +60,7 @@ const App = () => {
   }
 
   const setError = (error) => {
-    console.log(error)
+    alert(error)
   }
 
   return (
